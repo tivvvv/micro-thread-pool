@@ -1,5 +1,7 @@
 package com.tiv;
 
+import com.tiv.reject.RejectHandle;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -15,14 +17,17 @@ public class ThreadPool {
 
     private final TimeUnit timeUnit;
 
-    public final BlockingQueue<Runnable> blockingQueue;
+    private final BlockingQueue<Runnable> blockingQueue;
 
-    public ThreadPool(int maxSize, int corePoolSize, int timeout, TimeUnit timeUnit, BlockingQueue<Runnable> blockingQueue) {
+    private final RejectHandle rejectHandle;
+
+    public ThreadPool(int maxSize, int corePoolSize, int timeout, TimeUnit timeUnit, BlockingQueue<Runnable> blockingQueue, RejectHandle rejectHandle) {
         this.maxSize = maxSize;
         this.corePoolSize = corePoolSize;
         this.timeout = timeout;
         this.timeUnit = timeUnit;
         this.blockingQueue = blockingQueue;
+        this.rejectHandle = rejectHandle;
     }
 
     List<Thread> coreList = new ArrayList<>();
@@ -43,7 +48,7 @@ public class ThreadPool {
             thread.start();
         }
         if (!blockingQueue.offer(command)) {
-            throw new RuntimeException("阻塞队列已满");
+            rejectHandle.reject(command, this);
         }
     }
 
