@@ -2,69 +2,80 @@ package com.tiv;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public class ThreadPool {
 
-    private int maxSize = 16;
+    private final int maxSize;
 
-    private int corePoolSize = 10;
+    private final int corePoolSize;
 
-    private int timeout = 1;
+    private final int timeout;
 
-    private TimeUnit timeUnit = TimeUnit.SECONDS;
+    private final TimeUnit timeUnit;
 
-    BlockingQueue<Runnable> blockingQueue = new ArrayBlockingQueue<>(1024);
+    public final BlockingQueue<Runnable> blockingQueue;
 
-    private final Runnable coreTask = () -> {
-        while (true) {
-            try {
-                Runnable command = blockingQueue.take();
-                command.run();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    };
-
-    private final Runnable supportTask = () -> {
-        while (true) {
-            try {
-                Runnable command = blockingQueue.poll(timeout, timeUnit);
-                if (command == null) {
-                    break;
-                }
-                command.run();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        System.out.printf("线程%s结束了%n", Thread.currentThread().getName());
-    };
+    public ThreadPool(int maxSize, int corePoolSize, int timeout, TimeUnit timeUnit, BlockingQueue<Runnable> blockingQueue) {
+        this.maxSize = maxSize;
+        this.corePoolSize = corePoolSize;
+        this.timeout = timeout;
+        this.timeUnit = timeUnit;
+        this.blockingQueue = blockingQueue;
+    }
 
     List<Thread> coreList = new ArrayList<>();
-
     List<Thread> supportList = new ArrayList<>();
 
     void execute(Runnable command) {
         if (coreList.size() < corePoolSize) {
-            Thread thread = new Thread(coreTask);
+            Thread thread = new CoreThread();
             coreList.add(thread);
             thread.start();
         }
         if (blockingQueue.offer(command)) {
             return;
         }
-
         if (coreList.size() + supportList.size() < maxSize) {
-            Thread thread = new Thread(supportTask);
+            Thread thread = new SupportThread();
             supportList.add(thread);
             thread.start();
         }
         if (!blockingQueue.offer(command)) {
             throw new RuntimeException("阻塞队列已满");
+        }
+    }
+
+    class CoreThread extends Thread {
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    Runnable command = blockingQueue.take();
+                    command.run();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+    class SupportThread extends Thread {
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    Runnable command = blockingQueue.poll(timeout, timeUnit);
+                    if (command == null) {
+                        break;
+                    }
+                    command.run();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            System.out.println(Thread.currentThread().getName() + "线程结束了");
         }
     }
 }
