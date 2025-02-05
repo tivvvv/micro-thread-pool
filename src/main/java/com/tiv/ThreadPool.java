@@ -33,7 +33,7 @@ public class ThreadPool {
     List<Thread> coreList = new ArrayList<>();
     List<Thread> supportList = new ArrayList<>();
 
-    void execute(Runnable command) {
+    public void execute(Runnable command) {
         if (coreList.size() < corePoolSize) {
             Thread thread = new CoreThread();
             coreList.add(thread);
@@ -82,5 +82,9 @@ public class ThreadPool {
             }
             System.out.println(Thread.currentThread().getName() + "线程结束了");
         }
+    }
+
+    public BlockingQueue<Runnable> getBlockingQueue() {
+        return blockingQueue;
     }
 }
