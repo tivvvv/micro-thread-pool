@@ -3,12 +3,12 @@ package com.tiv.reject;
 import com.tiv.ThreadPool;
 
 /**
- * 当任务被拒绝时，该处理器会抛出异常。
+ * 当任务被拒绝时, 该处理器会抛出异常.
  */
 public class ThrowRejectHandle implements RejectHandle {
 
     /**
-     * 抛出异常表示任务被拒绝。
+     * 抛出异常表示任务被拒绝.
      *
      * @param rejectCommand 被拒绝的任务
      * @param threadPool    线程池实例

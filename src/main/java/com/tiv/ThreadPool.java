@@ -8,7 +8,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 自定义线程池实现。
+ * 自定义线程池实现.
  */
 public class ThreadPool {
 
@@ -20,7 +20,7 @@ public class ThreadPool {
     private final RejectHandle rejectHandle; // 拒绝策略
 
     /**
-     * 构造函数，初始化线程池参数。
+     * 构造函数, 初始化线程池参数.
      *
      * @param maxSize       最大线程数
      * @param corePoolSize  核心线程数
@@ -42,12 +42,12 @@ public class ThreadPool {
     List<Thread> supportList = new ArrayList<>(); // 支持线程列表
 
     /**
-     * 提交任务到线程池。
+     * 提交任务到线程池.
      *
      * @param command 待执行的任务
      */
     public void execute(Runnable command) {
-        // 如果核心线程数未达到上限，创建并启动新的核心线程
+        // 如果核心线程数未达到上限, 创建并启动新的核心线程
         if (coreList.size() < corePoolSize) {
             Thread thread = new CoreThread();
             coreList.add(thread);
@@ -59,21 +59,21 @@ public class ThreadPool {
             return;
         }
 
-        // 如果总线程数未达到最大值，创建并启动新的支持线程
+        // 如果总线程数未达到最大值, 创建并启动新的支持线程
         if (coreList.size() + supportList.size() < maxSize) {
             Thread thread = new SupportThread();
             supportList.add(thread);
             thread.start();
         }
 
-        // 如果任务仍然无法放入阻塞队列，则调用拒绝策略处理
+        // 如果任务仍然无法放入阻塞队列, 则调用拒绝策略处理
         if (!blockingQueue.offer(command)) {
             rejectHandle.reject(command, this);
         }
     }
 
     /**
-     * 核心线程类，负责从阻塞队列中取任务并执行。
+     * 核心线程类, 负责从阻塞队列中取任务并执行.
      */
     class CoreThread extends Thread {
         @Override
@@ -91,7 +91,7 @@ public class ThreadPool {
     }
 
     /**
-     * 支持线程类，负责在空闲时间内从阻塞队列中取任务并执行。
+     * 支持线程类, 负责在空闲时间内从阻塞队列中取任务并执行.
      */
     class SupportThread extends Thread {
         @Override
@@ -101,7 +101,7 @@ public class ThreadPool {
                     // 在指定时间内从阻塞队列中取任务并执行
                     Runnable command = blockingQueue.poll(timeout, timeUnit);
                     if (command == null) {
-                        // 如果超时未取到任务，结束线程
+                        // 如果超时未取到任务, 结束线程
                         break;
                     }
                     command.run();
@@ -115,7 +115,7 @@ public class ThreadPool {
     }
 
     /**
-     * 获取阻塞队列。
+     * 获取阻塞队列.
      *
      * @return 阻塞队列
      */
